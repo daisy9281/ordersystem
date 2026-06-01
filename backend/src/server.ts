@@ -81,6 +81,14 @@ app.use(securityLogger);
 
 // 静态文件服务 - 使用 process.cwd() 确保路径正确
 const uploadsDir = path.join(process.cwd(), 'uploads');
+
+// 为上传的图片设置允许跨域访问的响应头
+app.use('/api/uploads', (req: any, res: any, next: any) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  next();
+});
+
 app.use('/api/uploads', express.static(uploadsDir));
 
 // 速率限制

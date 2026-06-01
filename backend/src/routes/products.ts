@@ -15,6 +15,7 @@ import {
 import { authenticateAdmin } from '../middleware/auth';
 import { validate, validators, validateObjectId } from '../middleware/validation';
 import { asyncHandler } from '../middleware/errorHandler';
+import { upload } from '../middleware/upload';
 
 const router = express.Router();
 
@@ -57,6 +58,7 @@ router.get(
 router.post(
   '/',
   authenticateAdmin,
+  upload.single('image'),
   validate(validators.createProduct),
   asyncHandler(createProduct)
 );

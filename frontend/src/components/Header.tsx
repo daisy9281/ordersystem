@@ -2,26 +2,46 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useThemeColor } from '../utils/themeUtils';
 
 export const Header = () => {
   const { user, logout } = useAuth();
   const { getItemCount } = useCart();
+  const { primaryColor, hoverColor } = useThemeColor();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navLinkClass = "text-gray-600 px-4 py-2 rounded-lg transition";
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="text-2xl font-bold text-orange-500">
+          <Link to="/" className="text-2xl font-bold" style={{ color: primaryColor }}>
             订单系统
           </Link>
           
           {/* 桌面端导航 */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/" className="text-gray-600 hover:text-orange-500 transition">首页</Link>
-            <Link to="/orders" className="text-gray-600 hover:text-orange-500 transition">我的订单</Link>
+          <nav className="hidden md:flex items-center space-x-2">
+            <Link 
+              to="/" 
+              className={navLinkClass}
+              style={{ ':hover': { color: primaryColor } } as React.CSSProperties}
+              onMouseEnter={(e) => { e.currentTarget.style.color = primaryColor; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = ''; }}
+            >首页</Link>
+            <Link 
+              to="/orders" 
+              className={navLinkClass}
+              onMouseEnter={(e) => { e.currentTarget.style.color = primaryColor; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = ''; }}
+            >我的订单</Link>
             {user?.role === 'admin' && (
-              <Link to="/admin" className="text-gray-600 hover:text-orange-500 transition">管理后台</Link>
+              <Link 
+                to="/admin" 
+                className={navLinkClass}
+                onMouseEnter={(e) => { e.currentTarget.style.color = primaryColor; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = ''; }}
+              >管理后台</Link>
             )}
           </nav>
 
@@ -62,8 +82,19 @@ export const Header = () => {
               </div>
             ) : (
               <div className="hidden sm:flex items-center space-x-4">
-                <Link to="/login" className="text-gray-600 hover:text-orange-500 transition">登录</Link>
-                <Link to="/register" className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition">注册</Link>
+                <Link 
+                  to="/login" 
+                  className={navLinkClass}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = primaryColor; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = ''; }}
+                >登录</Link>
+                <Link 
+                  to="/register" 
+                  className="text-white px-4 py-2 rounded-lg transition"
+                  style={{ backgroundColor: primaryColor }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hoverColor; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = primaryColor; }}
+                >注册</Link>
               </div>
             )}
           </div>
@@ -75,23 +106,29 @@ export const Header = () => {
             <nav className="flex flex-col space-y-2">
               <Link 
                 to="/" 
-                className="text-gray-600 hover:text-orange-500 hover:bg-gray-50 px-4 py-2 rounded-lg transition"
+                className="text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-lg transition"
                 onClick={() => setMobileMenuOpen(false)}
+                onMouseEnter={(e) => { e.currentTarget.style.color = primaryColor; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = ''; }}
               >
                 首页
               </Link>
               <Link 
                 to="/orders" 
-                className="text-gray-600 hover:text-orange-500 hover:bg-gray-50 px-4 py-2 rounded-lg transition"
+                className="text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-lg transition"
                 onClick={() => setMobileMenuOpen(false)}
+                onMouseEnter={(e) => { e.currentTarget.style.color = primaryColor; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = ''; }}
               >
                 我的订单
               </Link>
               {user?.role === 'admin' && (
                 <Link 
                   to="/admin" 
-                  className="text-gray-600 hover:text-orange-500 hover:bg-gray-50 px-4 py-2 rounded-lg transition"
+                  className="text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-lg transition"
                   onClick={() => setMobileMenuOpen(false)}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = primaryColor; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = ''; }}
                 >
                   管理后台
                 </Link>
@@ -108,15 +145,20 @@ export const Header = () => {
                 <>
                   <Link 
                     to="/login" 
-                    className="text-gray-600 hover:text-orange-500 hover:bg-gray-50 px-4 py-2 rounded-lg transition"
+                    className="text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-lg transition"
                     onClick={() => setMobileMenuOpen(false)}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = primaryColor; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = ''; }}
                   >
                     登录
                   </Link>
                   <Link 
                     to="/register" 
-                    className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition text-center"
+                    className="text-white px-4 py-2 rounded-lg transition text-center"
                     onClick={() => setMobileMenuOpen(false)}
+                    style={{ backgroundColor: primaryColor }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hoverColor; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = primaryColor; }}
                   >
                     注册
                   </Link>

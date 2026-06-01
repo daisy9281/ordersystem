@@ -29,7 +29,7 @@ export interface CartItem {
 
 export interface OrderItem {
   _id?: string;
-  productId: string;
+  productId: string | { _id: string; name: string; image?: string; price: number };
   quantity: number;
   price: number;
 }

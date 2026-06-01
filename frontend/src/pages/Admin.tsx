@@ -31,12 +31,16 @@ export const Admin = () => {
     modificationFee: 0,
     freeModificationCount: 1
   });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [categoryCreated, setCategoryCreated] = useState(false);
   const [showNewType, setShowNewType] = useState(false);
   const [newTypeName, setNewTypeName] = useState('');
+  const [typeCreated, setTypeCreated] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deleteOrderConfirm, setDeleteOrderConfirm] = useState<string | null>(null);
 
@@ -98,7 +102,7 @@ export const Admin = () => {
         ...newProduct,
         type: typeMapping[newProduct.type] || newProduct.type
       };
-      await productAPI.create(productData);
+      await productAPI.create(productData, selectedImage || undefined);
       const productsData = await productAPI.getAll();
       setProducts(productsData);
       setShowAddProduct(false);
@@ -107,12 +111,14 @@ export const Admin = () => {
         description: '',
         price: 0,
         category: '',
-        type: 'milk_tea',
+        type: '',
         stock: 0,
         estimatedDays: 0,
         modificationFee: 0,
         freeModificationCount: 1
       });
+      setSelectedImage(null);
+      setImagePreview(null);
     } catch (error: any) {
       console.error('添加商品失败:', error);
       setFormError(error.response?.data?.message || '添加商品失败');
@@ -124,9 +130,11 @@ export const Admin = () => {
     if (value === '__new__') {
       setShowNewCategory(true);
       setNewCategoryName('');
+      setCategoryCreated(false);
       setNewProduct({ ...newProduct, category: '' });
     } else {
       setShowNewCategory(false);
+      setCategoryCreated(false);
       setNewProduct({ ...newProduct, category: value });
     }
   };
@@ -140,13 +148,14 @@ export const Admin = () => {
   const handleFinishCreateCategory = () => {
     if (newCategoryName.trim()) {
       setNewProduct({ ...newProduct, category: newCategoryName.trim() });
-      setShowNewCategory(false);
-      setNewCategoryName('');
+      setCategoryCreated(true);
     }
   };
 
   const existingCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
   const fixedTypes = ['奶茶', '手工制作', '饮品', '甜点', '小吃', '其他'];
+  const existingTypes = Array.from(new Set(products.map(p => p.type).filter(Boolean)));
+  const availableTypes = [...new Set([...fixedTypes, ...existingTypes])];
   const typeMapping: Record<string, string> = {
     '奶茶': 'milk_tea',
     '手工制作': 'handmade',
@@ -159,9 +168,12 @@ export const Admin = () => {
   const handleTypeChange = (value: string) => {
     if (value === '__new__') {
       setShowNewType(true);
+      setNewTypeName('');
+      setTypeCreated(false);
       setNewProduct({ ...newProduct, type: '' });
     } else {
       setShowNewType(false);
+      setTypeCreated(false);
       setNewProduct({ ...newProduct, type: value });
     }
   };
@@ -175,8 +187,7 @@ export const Admin = () => {
   const handleFinishCreateType = () => {
     if (newTypeName.trim()) {
       setNewProduct({ ...newProduct, type: newTypeName.trim() });
-      setShowNewType(false);
-      setNewTypeName('');
+      setTypeCreated(true);
     }
   };
 
@@ -402,27 +413,88 @@ export const Admin = () => {
             required
           />
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">商品图片</label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-orange-500 transition cursor-pointer"
+              onClick={() => document.getElementById('product-image-upload')?.click()}
+            >
+              {imagePreview ? (
+                <img src={imagePreview} alt="预览" className="max-h-40 mx-auto rounded-lg" />
+              ) : (
+                <>
+                  <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <p className="text-gray-500">点击上传图片</p>
+                  <p className="text-xs text-gray-400 mt-1">支持 JPEG、PNG 格式</p>
+                </>
+              )}
+              <input
+                id="product-image-upload"
+                type="file"
+                accept="image/jpeg,image/png"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setSelectedImage(file);
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      setImagePreview(event.target?.result as string);
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </div>
+            {selectedImage && (
+              <button
+                onClick={() => {
+                  setSelectedImage(null);
+                  setImagePreview(null);
+                }}
+                className="mt-2 text-sm text-red-500 hover:text-red-700"
+              >
+                移除图片
+              </button>
+            )}
+          </div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">销售热度</label>
             {showNewCategory ? (
               <div className="flex gap-2">
-                <Input
-                  value={newCategoryName}
-                  onChange={(e) => {
-                    setNewCategoryName(e.target.value);
-                    setNewProduct({ ...newProduct, category: e.target.value });
-                  }}
-                  placeholder="请输入新销售热度"
-                  className="flex-1"
-                />
-                <Button onClick={handleFinishCreateCategory} size="sm">
-                  完成
-                </Button>
-                <Button variant="secondary" onClick={() => {
-                  setShowNewCategory(false);
-                  setNewCategoryName('');
-                }} size="sm">
-                  取消
-                </Button>
+                {categoryCreated ? (
+                  <div className="flex-1 p-3 border border-green-500 rounded-lg bg-green-50 text-green-700">
+                    {newProduct.category}
+                    <button
+                      onClick={() => setCategoryCreated(false)}
+                      className="ml-2 text-sm text-green-600 hover:text-green-800"
+                    >
+                      编辑
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <Input
+                      value={newCategoryName || newProduct.category}
+                      onChange={(e) => {
+                        setNewCategoryName(e.target.value);
+                        setNewProduct({ ...newProduct, category: e.target.value });
+                      }}
+                      placeholder="请输入新销售热度"
+                      className="flex-1"
+                    />
+                    <Button onClick={handleFinishCreateCategory} size="sm">
+                      完成
+                    </Button>
+                    <Button variant="secondary" onClick={() => {
+                      setShowNewCategory(false);
+                      setNewCategoryName('');
+                      setCategoryCreated(false);
+                    }} size="sm">
+                      取消
+                    </Button>
+                  </>
+                )}
               </div>
             ) : (
               <select
@@ -444,24 +516,39 @@ export const Admin = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">类型</label>
             {showNewType ? (
               <div className="flex gap-2">
-                <Input
-                  value={newTypeName}
-                  onChange={(e) => {
-                    setNewTypeName(e.target.value);
-                    setNewProduct({ ...newProduct, type: e.target.value });
-                  }}
-                  placeholder="请输入新类型名称"
-                  className="flex-1"
-                />
-                <Button onClick={handleFinishCreateType} size="sm">
-                  完成
-                </Button>
-                <Button variant="secondary" onClick={() => {
-                  setShowNewType(false);
-                  setNewTypeName('');
-                }} size="sm">
-                  取消
-                </Button>
+                {typeCreated ? (
+                  <div className="flex-1 p-3 border border-green-500 rounded-lg bg-green-50 text-green-700">
+                    {newProduct.type}
+                    <button
+                      onClick={() => setTypeCreated(false)}
+                      className="ml-2 text-sm text-green-600 hover:text-green-800"
+                    >
+                      编辑
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <Input
+                      value={newTypeName || newProduct.type}
+                      onChange={(e) => {
+                        setNewTypeName(e.target.value);
+                        setNewProduct({ ...newProduct, type: e.target.value });
+                      }}
+                      placeholder="请输入新类型名称"
+                      className="flex-1"
+                    />
+                    <Button onClick={handleFinishCreateType} size="sm">
+                      完成
+                    </Button>
+                    <Button variant="secondary" onClick={() => {
+                      setShowNewType(false);
+                      setNewTypeName('');
+                      setTypeCreated(false);
+                    }} size="sm">
+                      取消
+                    </Button>
+                  </>
+                )}
               </div>
             ) : (
               <select
@@ -470,7 +557,7 @@ export const Admin = () => {
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="">选择类型</option>
-                {fixedTypes.map((type) => (
+                {availableTypes.map((type) => (
                   <option key={type} value={type}>
                     {type}
                   </option>

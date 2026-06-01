@@ -1,4 +1,5 @@
 import React from 'react';
+import { useThemeColor } from '../../utils/themeUtils';
 
 export type InputType = 'text' | 'email' | 'password' | 'tel' | 'number';
 
@@ -23,6 +24,8 @@ export const Input = ({
   required = false,
   disabled = false,
 }: InputProps) => {
+  const { primaryColor } = useThemeColor();
+  
   return (
     <div className="w-full">
       {label && (
@@ -38,7 +41,22 @@ export const Input = ({
         placeholder={placeholder}
         required={required}
         disabled={disabled}
-        className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''} ${className}`}
+        className={`w-full p-3 border border-gray-300 rounded-lg transition-all duration-200 ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''} ${className}`}
+        style={{
+          ':focus': {
+            outline: 'none',
+            boxShadow: `0 0 0 2px ${primaryColor}`,
+            borderColor: 'transparent',
+          },
+        } as React.CSSProperties}
+        onFocus={(e) => {
+          e.currentTarget.style.boxShadow = `0 0 0 2px ${primaryColor}`;
+          e.currentTarget.style.borderColor = 'transparent';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.boxShadow = '';
+          e.currentTarget.style.borderColor = '';
+        }}
       />
     </div>
   );

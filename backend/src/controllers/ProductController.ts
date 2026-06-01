@@ -92,7 +92,7 @@ export const getProductById = async (req: Request, res: Response) => {
  * 创建商品（管理员）
  * @route POST /api/products
  */
-export const createProduct = async (req: Request, res: Response) => {
+export const createProduct = async (req: any, res: Response) => {
   try {
     const {
       name,
@@ -100,12 +100,14 @@ export const createProduct = async (req: Request, res: Response) => {
       price,
       category,
       type,
-      image,
       stock,
       estimatedDays,
       modificationFee,
       freeModificationCount,
     } = req.body;
+
+    // 获取上传的图片路径
+    const image = req.file ? `/api/uploads/${req.file.filename}` : undefined;
 
     // 创建商品
     const product = await Product.create({

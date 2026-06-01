@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Comment } from '../types';
 import { orderAPI } from '../services/api';
+import { ModalPrompt } from './ModalPrompt';
 
 interface CommentSectionProps {
   comments: Comment[];
@@ -12,6 +13,13 @@ interface CommentSectionProps {
 export const CommentSection = ({ comments, orderId, isAdmin = false, onUpdate }: CommentSectionProps) => {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [promptConfig, setPromptConfig] = useState<{
+    commentId: string;
+    status: 'approved' | 'rejected';
+    title: string;
+    message: string;
+  } | null>(null);
 
   const handleSubmit = async (type: 'comment' | 'modification_request') => {
     if (!content.trim()) return;
@@ -106,10 +114,13 @@ export const CommentSection = ({ comments, orderId, isAdmin = false, onUpdate }:
                 <div className="flex space-x-3 mt-3">
                   <button
                     onClick={() => {
-                      const reply = prompt('请输入回复内容:');
-                      if (reply !== null) {
-                        handleReply(comment._id!, 'approved', reply);
-                      }
+                      setPromptConfig({
+                        commentId: comment._id!,
+                        status: 'approved',
+                        title: '通过修改请求',
+                        message: '请输入回复内容:',
+                      });
+                      setShowPrompt(true);
                     }}
                     className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition text-sm"
                   >
@@ -117,10 +128,13 @@ export const CommentSection = ({ comments, orderId, isAdmin = false, onUpdate }:
                   </button>
                   <button
                     onClick={() => {
-                      const reply = prompt('请输入拒绝理由:');
-                      if (reply !== null) {
-                        handleReply(comment._id!, 'rejected', reply);
-                      }
+                      setPromptConfig({
+                        commentId: comment._id!,
+                        status: 'rejected',
+                        title: '拒绝修改请求',
+                        message: '请输入拒绝理由:',
+                      });
+                      setShowPrompt(true);
                     }}
                     className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition text-sm"
                   >
@@ -132,6 +146,19 @@ export const CommentSection = ({ comments, orderId, isAdmin = false, onUpdate }:
           ))
         )}
       </div>
+
+      <ModalPrompt
+        isOpen={showPrompt}
+        onClose={() => setShowPrompt(false)}
+        onConfirm={(reply) => {
+          if (promptConfig) {
+            handleReply(promptConfig.commentId, promptConfig.status, reply);
+          }
+        }}
+        title={promptConfig?.title}
+        message={promptConfig?.message || ''}
+        placeholder="请输入内容..."
+      />
     </div>
   );
 };

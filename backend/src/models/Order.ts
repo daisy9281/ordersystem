@@ -226,12 +226,17 @@ const OrderSchema: Schema = new Schema({
   toJSON: {
     transform: (doc, ret) => {
       delete ret.__v;
-      // 将 items.productId 转换为字符串，便于前端使用
+      // 将 items.productId 转换为字符串（如果不是对象）
       if (ret.items && Array.isArray(ret.items)) {
-        ret.items = ret.items.map(item => ({
-          ...item,
-          productId: item.productId ? String(item.productId) : item.productId,
-        }));
+        ret.items = ret.items.map(item => {
+          if (typeof item.productId === 'object' && item.productId !== null) {
+            return item;
+          }
+          return {
+            ...item,
+            productId: item.productId ? String(item.productId) : item.productId,
+          };
+        });
       }
       // 将 comments.userId 转换为字符串
       if (ret.comments && Array.isArray(ret.comments)) {

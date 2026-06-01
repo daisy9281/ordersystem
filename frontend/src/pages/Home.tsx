@@ -3,8 +3,10 @@ import { Product } from '../types';
 import { productAPI } from '../services/api';
 import { ProductCard } from '../components/ProductCard';
 import { Loading } from '../components/Loading';
+import { useThemeColor } from '../utils/themeUtils';
 
 export const Home = () => {
+  const { primaryColor, hoverColor } = useThemeColor();
   const [products, setProducts] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,10 +46,10 @@ export const Home = () => {
     return <Loading />;
   }
 
+  const existingCategories = Array.from(new Set(allProducts.map(p => p.category).filter(Boolean)));
   const categories = [
     { id: 'all', label: '全部' },
-    { id: '热销', label: '热销' },
-    { id: '新品', label: '新品' },
+    ...existingCategories.map(cat => ({ id: cat, label: cat })),
   ];
 
   const existingTypes = Array.from(new Set(allProducts.map(p => p.type).filter(Boolean)));
@@ -58,7 +60,7 @@ export const Home = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="bg-gradient-to-r from-orange-500 to-orange-400 rounded-lg p-8 text-white mb-8">
+      <div className="rounded-lg p-8 text-white mb-8" style={{ background: `linear-gradient(to right, ${primaryColor}, ${hoverColor})` }}>
         <h1 className="text-3xl font-bold mb-2">欢迎来到订单系统</h1>
         <p className="opacity-90">精选商品，品质保证</p>
       </div>
@@ -71,9 +73,20 @@ export const Home = () => {
               onClick={() => setActiveCategory(cat.id)}
               className={`px-4 py-2 rounded-full transition ${
                 activeCategory === cat.id
-                  ? 'bg-orange-500 text-white'
+                  ? 'text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
+              style={activeCategory === cat.id ? { backgroundColor: primaryColor } : undefined}
+              onMouseEnter={(e) => {
+                if (activeCategory === cat.id) {
+                  e.currentTarget.style.backgroundColor = hoverColor;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeCategory === cat.id) {
+                  e.currentTarget.style.backgroundColor = primaryColor;
+                }
+              }}
             >
               {cat.label}
             </button>
@@ -87,9 +100,20 @@ export const Home = () => {
               onClick={() => setActiveType(type.id)}
               className={`px-4 py-2 rounded-full transition ${
                 activeType === type.id
-                  ? 'bg-orange-500 text-white'
+                  ? 'text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
+              style={activeType === type.id ? { backgroundColor: primaryColor } : undefined}
+              onMouseEnter={(e) => {
+                if (activeType === type.id) {
+                  e.currentTarget.style.backgroundColor = hoverColor;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeType === type.id) {
+                  e.currentTarget.style.backgroundColor = primaryColor;
+                }
+              }}
             >
               {type.label}
             </button>

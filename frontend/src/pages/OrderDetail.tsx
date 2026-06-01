@@ -9,10 +9,20 @@ import { ProgressGallery } from '../components/ProgressGallery';
 import { CommentSection } from '../components/CommentSection';
 import { ImageUploader } from '../components/ImageUploader';
 
+const API_URL = 'http://localhost:5002';
+
 export const OrderDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
+  
+  const getImageUrl = (url: string | undefined) => {
+    if (!url) return undefined;
+    if (url.startsWith('http')) {
+      return url;
+    }
+    return `${API_URL}${url}`;
+  };
   const [products, setProducts] = useState<Record<string, Product>>({});
   const [loading, setLoading] = useState(true);
   const [isPaying, setIsPaying] = useState(false);
@@ -25,8 +35,15 @@ export const OrderDetail = () => {
 
         const productMap: Record<string, Product> = {};
         for (const item of orderData.items) {
-          const product = await productAPI.getById(item.productId);
-          productMap[item.productId] = product;
+          const productId = typeof item.productId === 'string' ? item.productId : item.productId._id;
+          try {
+            const product = await productAPI.getById(productId);
+            if (product) {
+              productMap[productId] = product;
+            }
+          } catch (err) {
+            console.error('获取商品失败:', err);
+          }
         }
         setProducts(productMap);
       } catch (error) {
@@ -143,12 +160,15 @@ export const OrderDetail = () => {
         <h3 className="text-lg font-semibold mb-4">订单商品</h3>
         <div className="space-y-4">
           {order.items.map((item, index) => {
-            const product = products[item.productId];
+            const productId = typeof item.productId === 'string' ? item.productId : item.productId._id;
+            const product = products[productId];
+            const productName = typeof item.productId === 'object' ? item.productId.name : product?.name;
+            const productImage = typeof item.productId === 'object' ? item.productId.image : product?.image;
             return (
               <div key={index} className="flex items-center space-x-4">
                 <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
-                  {product?.image ? (
-                    <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded-lg" />
+                  {getImageUrl(productImage) ? (
+                    <img src={getImageUrl(productImage)} alt={productName || '未知商品'} className="w-full h-full object-cover rounded-lg" />
                   ) : (
                     <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -156,7 +176,7 @@ export const OrderDetail = () => {
                   )}
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold">{product?.name || '未知商品'}</h4>
+                  <h4 className="font-semibold">{productName || '未知商品'}</h4>
                   <p className="text-orange-500">¥{item.price}</p>
                 </div>
                 <div className="text-right">

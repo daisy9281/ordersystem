@@ -52,8 +52,28 @@ export const productAPI = {
     return response.data.data.product as Product;
   },
 
-  create: async (data: Omit<Product, '_id' | 'createdAt' | 'status'>) => {
-    const response = await axiosInstance.post('/products', data);
+  create: async (data: Omit<Product, '_id' | 'createdAt' | 'status'>, image?: File) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('description', data.description || '');
+    formData.append('price', String(data.price));
+    formData.append('category', data.category);
+    formData.append('type', data.type);
+    formData.append('stock', String(data.stock || 0));
+    if (data.estimatedDays) {
+      formData.append('estimatedDays', String(data.estimatedDays));
+    }
+    formData.append('modificationFee', String(data.modificationFee || 0));
+    formData.append('freeModificationCount', String(data.freeModificationCount || 0));
+    if (image) {
+      formData.append('image', image);
+    }
+    
+    const response = await axiosInstance.post('/products', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data.data.product as Product;
   },
 

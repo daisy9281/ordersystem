@@ -1,14 +1,14 @@
 /**
  * 商品数据模型
- * 支持奶茶和手工制作两种类型的商品
+ * 支持自定义类型的商品
  */
 
 import mongoose, { Document, Schema, Types, Model } from 'mongoose';
 
 /**
- * 商品类型枚举
+ * 商品类型
  */
-export type ProductType = 'milk_tea' | 'handmade';
+export type ProductType = string;
 
 /**
  * 商品状态枚举

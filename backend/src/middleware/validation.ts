@@ -371,7 +371,7 @@ export const validators = {
     { field: 'name', rules: ['required', 'isString', 'minLength:1', 'maxLength:100'] },
     { field: 'price', rules: ['required', 'isNumber', 'min:0'] },
     { field: 'category', rules: ['required', 'isString'] },
-    { field: 'type', rules: ['required', 'isEnum'], enumValues: ['milk_tea', 'handmade', 'drinks', 'dessert', 'snacks', 'other'] },
+    { field: 'type', rules: ['required', 'isString'] },
   ] as ValidationRule[],
 };
 

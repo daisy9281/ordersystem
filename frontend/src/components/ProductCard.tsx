@@ -1,8 +1,13 @@
+import { useState } from 'react';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { Card, CardBody } from './ui/Card';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
+import { useThemeColor } from '../utils/themeUtils';
+import { ImageViewer } from './ImageViewer';
+
+const API_URL = 'http://localhost:5002';
 
 interface ProductCardProps {
   product: Product;
@@ -10,15 +15,28 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem } = useCart();
+  const { primaryColor } = useThemeColor();
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  
+  const getImageUrl = (url: string | undefined) => {
+    if (!url) return undefined;
+    if (url.startsWith('http')) {
+      return url;
+    }
+    return `${API_URL}${url}`;
+  };
+
+  const imageUrl = getImageUrl(product.image);
 
   return (
     <Card hover className="overflow-hidden">
       <div className="h-48 bg-gray-50 flex items-center justify-center relative">
-        {product.image ? (
+        {imageUrl ? (
           <img 
-            src={product.image} 
+            src={imageUrl} 
             alt={product.name} 
-            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer" 
+            onClick={() => setShowImageViewer(true)}
           />
         ) : (
           <svg className="w-20 h-20 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,7 +48,19 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             <span className="text-white font-bold text-lg">缺货</span>
           </div>
         )}
+        {imageUrl && (
+          <div className="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
+            点击查看大图
+          </div>
+        )}
       </div>
+      
+      <ImageViewer 
+        isOpen={showImageViewer} 
+        onClose={() => setShowImageViewer(false)} 
+        imageUrl={imageUrl!} 
+        alt={product.name}
+      />
       <CardBody className="p-4">
         <div className="flex items-center justify-between mb-2">
           <Badge variant="default">
@@ -44,7 +74,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         <p className="text-gray-500 text-sm mb-3 line-clamp-2">{product.description}</p>
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-xl font-bold text-orange-500">¥{product.price}</span>
+            <span className="text-xl font-bold" style={{ color: primaryColor }}>¥{product.price}</span>
             {product.modificationFee > 0 && (
               <span className="text-xs text-gray-400 ml-2">修改费 ¥{product.modificationFee}</span>
             )}

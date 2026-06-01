@@ -43,12 +43,15 @@ export const OrderItem = ({ order }: OrderItemProps) => {
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <p className="text-gray-600 text-sm">
-              {order.items.map((item, index) => (
-                <span key={index}>
-                  {index > 0 && ', '}
-                  {item.quantity}件
-                </span>
-              ))}
+              {order.items.map((item, index) => {
+                const productName = typeof item.productId === 'object' ? item.productId.name : '';
+                return (
+                  <span key={index}>
+                    {index > 0 && ', '}
+                    {productName || '未知商品'} × {item.quantity}
+                  </span>
+                );
+              })}
             </p>
           </div>
           <div className="text-right">

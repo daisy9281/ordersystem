@@ -5,14 +5,30 @@ import { productAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { Loading } from '../components/Loading';
+import { useThemeColor } from '../utils/themeUtils';
+import { ImageViewer } from '../components/ImageViewer';
+
+const API_URL = 'http://localhost:5002';
 
 export const ProductDetail = () => {
+  const { primaryColor, hoverColor } = useThemeColor();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addItem } = useCart();
   const { user } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  
+  const getImageUrl = (url: string | undefined) => {
+    if (!url) return undefined;
+    if (url.startsWith('http')) {
+      return url;
+    }
+    return `${API_URL}${url}`;
+  };
+  
+  const imageUrl = product ? getImageUrl(product.image) : undefined;
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -44,7 +60,7 @@ export const ProductDetail = () => {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <p className="text-gray-500">商品不存在</p>
-        <Link to="/" className="text-orange-500">返回首页</Link>
+        <Link to="/" style={{ color: primaryColor }}>返回首页</Link>
       </div>
     );
   }
@@ -52,15 +68,32 @@ export const ProductDetail = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="h-80 bg-gray-100 rounded-lg flex items-center justify-center">
-          {product.image ? (
-            <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded-lg" />
+        <div className="h-80 bg-gray-100 rounded-lg flex items-center justify-center relative">
+          {imageUrl ? (
+            <img 
+              src={imageUrl} 
+              alt={product.name} 
+              className="w-full h-full object-cover rounded-lg cursor-pointer" 
+              onClick={() => setShowImageViewer(true)}
+            />
           ) : (
             <svg className="w-32 h-32 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           )}
+          {imageUrl && (
+            <div className="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
+              点击查看大图
+            </div>
+          )}
         </div>
+        
+        <ImageViewer 
+          isOpen={showImageViewer} 
+          onClose={() => setShowImageViewer(false)} 
+          imageUrl={imageUrl!} 
+          alt={product.name}
+        />
 
         <div>
           <div className="flex items-center space-x-2 mb-4">
@@ -74,7 +107,7 @@ export const ProductDetail = () => {
           <p className="text-gray-600 mb-6">{product.description}</p>
 
           <div className="flex items-baseline space-x-2 mb-6">
-            <span className="text-3xl font-bold text-orange-500">¥{product.price}</span>
+            <span className="text-3xl font-bold" style={{ color: primaryColor }}>¥{product.price}</span>
             {product.modificationFee > 0 && (
               <span className="text-sm text-gray-500">修改费: ¥{product.modificationFee}/次</span>
             )}
@@ -99,8 +132,19 @@ export const ProductDetail = () => {
             className={`w-full py-4 rounded-lg font-semibold transition flex items-center justify-center space-x-2 ${
               product.stock === 0
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-orange-500 text-white hover:bg-orange-600'
+                : 'text-white'
             }`}
+            style={product.stock === 0 ? undefined : { backgroundColor: primaryColor }}
+            onMouseEnter={(e) => {
+              if (product.stock !== 0) {
+                e.currentTarget.style.backgroundColor = hoverColor;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (product.stock !== 0) {
+                e.currentTarget.style.backgroundColor = primaryColor;
+              }
+            }}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -110,7 +154,7 @@ export const ProductDetail = () => {
 
           {!user && (
             <p className="text-center text-gray-500 text-sm mt-4">
-              <Link to="/login" className="text-orange-500">登录</Link> 后可下单购买
+              <Link to="/login" style={{ color: primaryColor }}>登录</Link> 后可下单购买
             </p>
           )}
         </div>
