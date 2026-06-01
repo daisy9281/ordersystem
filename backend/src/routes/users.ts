@@ -9,6 +9,7 @@ import { authenticate } from '../middleware/auth';
 import { validate, validators } from '../middleware/validation';
 import { asyncHandler } from '../middleware/errorHandler';
 import { loginLimiter, registerLimiter } from '../middleware/rateLimiter';
+import { registerAntiSpam } from '../middleware/antiSpam';
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ const router = express.Router();
 router.post(
   '/register',
   registerLimiter,
+  registerAntiSpam,
   validate(validators.register),
   asyncHandler(register)
 );

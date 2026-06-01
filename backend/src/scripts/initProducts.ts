@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Product } from '../models/Product';
+import Product from '../models/Product';
 
 const initProducts = async (): Promise<void> => {
   const products = [

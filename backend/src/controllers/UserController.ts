@@ -17,20 +17,40 @@ import { logger } from '../utils/logger';
 export const register = async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
+    
+    logger.info('Register request received', {
+      username: username,
+      requestId: req.requestId,
+      ip: req.ip,
+      body: req.body,
+      headers: {
+        'user-agent': req.headers['user-agent'],
+        'content-type': req.headers['content-type'],
+      },
+    });
 
     // 检查用户名是否已存在
-    if (await User.isUsernameTaken(username)) {
+    logger.debug('Checking if username is taken', { username });
+    const isTaken = await User.isUsernameTaken(username);
+    logger.debug('Username check result', { isTaken });
+    
+    if (isTaken) {
+      logger.warn('Username already taken', { username });
       throw AppError.badRequest('该用户名已被使用', { field: 'username' });
     }
 
     // 创建用户
+    logger.debug('Creating user', { username });
     const user = await User.create({
       username,
       password,
     });
+    logger.debug('User created successfully', { userId: user._id });
 
     // 生成token
+    logger.debug('Generating token');
     const token = generateToken(user._id.toString());
+    logger.debug('Token generated successfully');
 
     logger.info('User registered successfully', {
       userId: user._id,
@@ -50,6 +70,9 @@ export const register = async (req: Request, res: Response) => {
     logger.error('User registration failed', error, {
       username: req.body.username,
       requestId: req.requestId,
+      ip: req.ip,
+      errorMessage: error.message,
+      errorStack: error.stack,
     });
     throw error;
   }

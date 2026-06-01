@@ -18,14 +18,26 @@ export const Register = () => {
     setError('');
     setIsLoading(true);
 
+    console.log('=== 注册开始 ===');
+    console.log('表单数据:', { username: formData.username, password: '***' });
+    console.log('请求URL:', 'http://localhost:5002/api/users/register');
+
     try {
+      console.log('正在发送注册请求...');
       const user = await authAPI.register(formData);
+      console.log('注册成功! 用户数据:', user);
       login(user);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || '注册失败');
+      console.error('注册失败! 错误详情:');
+      console.error('- 错误状态码:', err.response?.status);
+      console.error('- 错误消息:', err.response?.data?.error?.message);
+      console.error('- 完整错误响应:', err.response?.data);
+      console.error('- Error对象:', err);
+      setError(err.response?.data?.error?.message || '注册失败');
     }
     setIsLoading(false);
+    console.log('=== 注册结束 ===');
   };
 
   return (
